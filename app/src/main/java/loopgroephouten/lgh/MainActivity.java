@@ -172,13 +172,12 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     url = new URL(requestURL);
                     urlConnection = (HttpURLConnection) url.openConnection();
+                    BufferedInputStream bin = new BufferedInputStream(urlConnection.getInputStream());
                     contentType = urlConnection.getContentType();
                     Log.d("Content-type: ", contentType);
-                    BufferedInputStream bin = new BufferedInputStream(urlConnection.getInputStream());
-
                     ByteArrayOutputStream buffer = new ByteArrayOutputStream();
                     int nRead;
-                    byte[] data = new byte[1024];
+                    byte[] data = new byte[1024*8];
                     while ((nRead = bin.read(data, 0, data.length)) != -1) {
                         buffer.write(data, 0, nRead);
                         Log.d("reading....", requestURL);

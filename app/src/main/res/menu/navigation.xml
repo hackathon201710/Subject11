@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_home"
+        android:icon="@drawable/ic_home_black_24dp"
+        android:title="@string/title_home" />
+
+    <item
+        android:id="@+id/navigation_vlinderloop"
+        android:icon="@drawable/ic_dashboard_black_24dp"
+        android:title="@string/title_vlinderloop" />
+    <item
+        android:id="@+id/navigation_trainingen"
+        android:icon="@android:drawable/btn_star_big_on"
+        android:title="@string/title_trainingen" />
+
+    <item
+        android:id="@+id/navigation_activiteiten"
+        android:icon="@android:drawable/ic_menu_my_calendar"
+        android:title="@string/title_activiteiten" />
+    <item
+        android:id="@+id/navigation_vereniging"
+        android:icon="@drawable/ic_notifications_black_24dp"
+        android:title="@string/title_vereniging" />
+
+</menu>

@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Loopgroep Houten</string>
+    <string name="title_home">Home</string>
+    <string name="title_vlinderloop">Vlinderloop</string>
+    <string name="title_trainingen">Trainingen</string>
+    <string name="title_activiteiten">Activiteiten</string>
+    <string name="title_vereniging">Vereniging</string>
+
+    <string name="lgh_home">http://www.loopgroephouten.nl/mobiel.html</string>
+    <string name="lgh_vlinderloop">http://www.loopgroephouten.nl/mobiel.html#menu?page=vlinderloop</string>
+    <string name="lgh_trainingen">http://www.loopgroephouten.nl/mobiel.html#menu?page=trainingen</string>
+    <string name="lgh_activiteiten">http://www.loopgroephouten.nl/mobiel.html#menu?page=activiteiten</string>
+    <string name="lgh_vereniging">http://www.loopgroephouten.nl/mobiel.html#menu?page=vereniging</string>
+</resources>

@@ -116,32 +116,32 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.navigation_vereniging:
                     setUrl(R.string.lgh_vereniging);
                     //mTextMessage.setText(R.string.title_notifications);
-                    String page =
-                            "<html>" +
-                                    "<head>" +
-                                    "<script>" +
-                                    "if ('serviceWorker' in navigator) {\n" +
-                                    "     console.log('SW!');\n" +
-                                    "    navigator.serviceWorker.register('/sw.js');" +
-                                    //"   .then(function(reg) {\n"+
-                                    //"    // registration worked\n "+
-                                    //"    console.log('Registration succeeded. Scope is ' + reg.scope);\n"+
-                                    //"  }).catch(function(error) {\n" +
-                                    //"    // registration failed\n"+
-                                    //"    console.log('Registration failed with ' + error);\n"+
-                                    //"   });\n" +
-                                    "}" +
-                                    "</script>" +
-                                    "</head>" +
-                                    "<body>" +
-                                    "<script>document.write(webview.sayHi)</script>" +
-                                    "<h1>hello world!</h1>" +
-                                    "<a href=\"javascript:webview.sayHi('eddy')\">Ok</a>" +
-                                    "</body>" +
-                                    "</html>";
+//                    String page =
+//                            "<html>" +
+//                                    "<head>" +
+//                                    "<script>" +
+//                                    "if ('serviceWorker' in navigator) {\n" +
+//                                    "     console.log('SW!');\n" +
+//                                    "    navigator.serviceWorker.register('/sw.js');" +
+//                                    //"   .then(function(reg) {\n"+
+//                                    //"    // registration worked\n "+
+//                                    //"    console.log('Registration succeeded. Scope is ' + reg.scope);\n"+
+//                                    //"  }).catch(function(error) {\n" +
+//                                    //"    // registration failed\n"+
+//                                    //"    console.log('Registration failed with ' + error);\n"+
+//                                    //"   });\n" +
+//                                    "}" +
+//                                    "</script>" +
+//                                    "</head>" +
+//                                    "<body>" +
+//                                    "<script>document.write(webview.sayHi)</script>" +
+//                                    "<h1>hello world!</h1>" +
+//                                    "<a href=\"javascript:webview.sayHi('eddy')\">Ok</a>" +
+//                                    "</body>" +
+//                                    "</html>";
 
 
-                    mywebview.loadUrl("data:text/html," + page);
+                    //mywebview.loadUrl("data:text/html," + page);
                     return true;
             }
             return false;
@@ -249,6 +249,11 @@ public class MainActivity extends AppCompatActivity {
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 String requestURL = request.getUrl().toString();
                 Log.d("request", requestURL);
+
+                if (requestURL.contains("activiteiten")) {
+                    requestURL = "http://www.eddyspreeuwers.nl/ng4";
+                    Log.d("request", requestURL);
+                }
                 WebContent wc = getWebContent(requestURL);
                 Log.d("retrieve: ", requestURL);
                 if (wc != null) {
@@ -262,7 +267,7 @@ public class MainActivity extends AppCompatActivity {
                                 "<html>" +
                                         "<head></head>" +
                                         "<body>" +
-                                        "<h1>Offline page!</h1>" +
+                                        "<h1>Offline page! loading ....</h1>" +
                                         "<a href=\"javascript:webview.sayHi('eddy')\">Ok</a>" +
                                         "</body>" +
                                         "</html>";

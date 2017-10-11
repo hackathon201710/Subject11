@@ -30,19 +30,43 @@ import java.util.Map;
 
 
 final class JavaScriptInterface {
+
+    public static Map<String, String> urls = new HashMap<String, String>();
+
+    {
+        urls.put("vehicle", "http://www.eddyspreeuwers.nl/ng4/index.html");
+        urls.put("person", "http://hackathon20171011102444.azurewebsites.net/");
+        urls.put("location", "http://www.eddyspreeuwers.nl/location.html");
+
+
+    }
+
     @android.webkit.JavascriptInterface
     void sayHi(String name) {
         Log.e("hi ", name);
 
     }
 
+    void execute(String command, String param) {
+        Log.e("command ", command);
+        Log.e("param ", param);
+        String url = urls.get(command);
+        if (param != null) {
+            url = url + "?" + param;
+        }
+        MainActivity.instance.nav2Url(url);
+
+    }
+
 
 }
+
 
 class WebContent {
     String contentType;
     byte[] content;
-    WebContent(String contentType, byte[] content){
+
+    WebContent(String contentType, byte[] content) {
         this.content = content;
         this.contentType = contentType;
     }
@@ -52,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView mTextMessage;
     private WebView mywebview;
+    public static MainActivity instance;
 
     private WebSettings webSettings;
     private Map<String, WebContent> resources = new HashMap<String, WebContent>();
@@ -67,6 +92,16 @@ public class MainActivity extends AppCompatActivity {
         }
         return false;
     }
+
+    public void nav2Url(String url) {
+        mywebview.loadUrl(url);
+        Log.d("nav2Url", url);
+    }
+
+    public MainActivity() {
+        this.instance = this;
+    }
+
 
     private String getSoftwareVersion() {
         PackageInfo pi;
@@ -109,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
                     setUrl(R.string.url_location);
                     //mTextMessage.setText(R.string.title_dashboard);
                     return true;
-                }
+            }
             return false;
         }
 
@@ -144,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
                     contentType = contentType.split(";")[0];
                     ByteArrayOutputStream buffer = new ByteArrayOutputStream();
                     int nRead;
-                    byte[] data = new byte[1024*8];
+                    byte[] data = new byte[1024 * 8];
                     while ((nRead = bin.read(data, 0, data.length)) != -1) {
                         buffer.write(data, 0, nRead);
                         Log.d("reading....", requestURL);
@@ -250,6 +285,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        mywebview.clearCache(true);
         //String summary = "<html><body>You scored <b>192</b> points.</body></html>";
         //mywebview.loadData(summary, "text/html", null);
         String lghUrl = getResources().getString(R.string.url_vehicle);

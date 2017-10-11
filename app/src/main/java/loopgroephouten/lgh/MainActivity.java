@@ -96,54 +96,20 @@ public class MainActivity extends AppCompatActivity {
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             String navUrl;
             switch (item.getItemId()) {
-                case R.id.navigation_home:
-                    setUrl(R.string.lgh_home);
+                case R.id.navigation_vehicle:
+                    setUrl(R.string.url_vehicle);
 
                     //mTextMessage.setText(R.string.title_home);
                     return true;
-                case R.id.navigation_vlinderloop:
-                    setUrl(R.string.lgh_vlinderloop);
+                case R.id.navigation_person:
+                    setUrl(R.string.url_person);
                     //mTextMessage.setText(R.string.title_dashboard);
                     return true;
-                case R.id.navigation_trainingen:
-                    setUrl(R.string.lgh_trainingen);
+                case R.id.navigation_location:
+                    setUrl(R.string.url_location);
                     //mTextMessage.setText(R.string.title_dashboard);
                     return true;
-                case R.id.navigation_activiteiten:
-                    setUrl(R.string.lgh_activiteiten);
-                    //mTextMessage.setText(R.string.title_dashboard);
-                    return true;
-                case R.id.navigation_vereniging:
-                    setUrl(R.string.lgh_vereniging);
-                    //mTextMessage.setText(R.string.title_notifications);
-//                    String page =
-//                            "<html>" +
-//                                    "<head>" +
-//                                    "<script>" +
-//                                    "if ('serviceWorker' in navigator) {\n" +
-//                                    "     console.log('SW!');\n" +
-//                                    "    navigator.serviceWorker.register('/sw.js');" +
-//                                    //"   .then(function(reg) {\n"+
-//                                    //"    // registration worked\n "+
-//                                    //"    console.log('Registration succeeded. Scope is ' + reg.scope);\n"+
-//                                    //"  }).catch(function(error) {\n" +
-//                                    //"    // registration failed\n"+
-//                                    //"    console.log('Registration failed with ' + error);\n"+
-//                                    //"   });\n" +
-//                                    "}" +
-//                                    "</script>" +
-//                                    "</head>" +
-//                                    "<body>" +
-//                                    "<script>document.write(webview.sayHi)</script>" +
-//                                    "<h1>hello world!</h1>" +
-//                                    "<a href=\"javascript:webview.sayHi('eddy')\">Ok</a>" +
-//                                    "</body>" +
-//                                    "</html>";
-
-
-                    //mywebview.loadUrl("data:text/html," + page);
-                    return true;
-            }
+                }
             return false;
         }
 
@@ -173,8 +139,9 @@ public class MainActivity extends AppCompatActivity {
                     url = new URL(requestURL);
                     urlConnection = (HttpURLConnection) url.openConnection();
                     BufferedInputStream bin = new BufferedInputStream(urlConnection.getInputStream());
-                    contentType = urlConnection.getContentType();
+                    contentType = "" + urlConnection.getContentType();
                     Log.d("Content-type: ", contentType);
+                    contentType = contentType.split(";")[0];
                     ByteArrayOutputStream buffer = new ByteArrayOutputStream();
                     int nRead;
                     byte[] data = new byte[1024*8];
@@ -285,7 +252,7 @@ public class MainActivity extends AppCompatActivity {
 
         //String summary = "<html><body>You scored <b>192</b> points.</body></html>";
         //mywebview.loadData(summary, "text/html", null);
-        String lghUrl = getResources().getString(R.string.lgh_home);
+        String lghUrl = getResources().getString(R.string.url_vehicle);
         mywebview.loadUrl(lghUrl);
 
     }

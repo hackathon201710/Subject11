@@ -1,15 +1,11 @@
 <resources>
-    <string name="app_name">Loopgroep Houten</string>
-    <string name="title_home">Home</string>
-    <string name="title_vlinderloop">Vlinderloop</string>
-    <string name="title_trainingen">Trainingen</string>
-    <string name="title_activiteiten">Activiteiten</string>
-    <string name="title_vereniging">Vereniging</string>
+    <string name="app_name">PWA container</string>
+    <string name="title_vehicle">Vehicle</string>
+    <string name="title_person">Person</string>
+    <string name="title_location">Location</string>
 
-    <string name="lgh_home">http://www.loopgroephouten.nl/mobiel.html</string>
-    <string name="ng4_home">http://www.eddyspreeuwers.nl/ng4</string>
-    <string name="lgh_vlinderloop">http://www.loopgroephouten.nl/mobiel.html#menu?page=vlinderloop</string>
-    <string name="lgh_trainingen">http://www.loopgroephouten.nl/mobiel.html#menu?page=trainingen</string>
-    <string name="lgh_activiteiten">http://www.loopgroephouten.nl/mobiel.html#menu?page=activiteiten</string>
-    <string name="lgh_vereniging">http://www.loopgroephouten.nl/mobiel.html#menu?page=vereniging</string>
+    <string name="url_vehicle">http://www.eddyspreeuwers.nl/ng4/index.html</string>
+    <string name="url_person">http://hackathon20171011102444.azurewebsites.net/</string>
+    <string name="url_location">http://www.eddyspreeuwers.nl/location.html</string>
+
 </resources>

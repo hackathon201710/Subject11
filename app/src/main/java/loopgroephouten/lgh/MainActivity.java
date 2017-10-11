@@ -1,8 +1,11 @@
 package loopgroephouten.lgh;
 
+import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
@@ -34,10 +37,9 @@ final class JavaScriptInterface {
     public static Map<String, String> urls = new HashMap<String, String>();
 
     {
-        urls.put("vehicle", "http://www.eddyspreeuwers.nl/ng4/index.html");
+        urls.put("vehicle", "http://www.eddyspreeuwers.nl/ng4");
         urls.put("person", "http://hackathon20171011102444.azurewebsites.net/");
         urls.put("location", "http://www.eddyspreeuwers.nl/location.html");
-
 
     }
 
@@ -46,7 +48,7 @@ final class JavaScriptInterface {
         Log.e("hi ", name);
 
     }
-
+    @android.webkit.JavascriptInterface
     void execute(String command, String param) {
         Log.e("command ", command);
         Log.e("param ", param);
@@ -54,6 +56,7 @@ final class JavaScriptInterface {
         if (param != null) {
             url = url + "?" + param;
         }
+
         MainActivity.instance.nav2Url(url);
 
     }
@@ -64,6 +67,7 @@ final class JavaScriptInterface {
 
 class WebContent {
     String contentType;
+
     byte[] content;
 
     WebContent(String contentType, byte[] content) {
@@ -93,9 +97,14 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    public void nav2Url(String url) {
-        mywebview.loadUrl(url);
+    public void nav2Url(final String  url) {
         Log.d("nav2Url", url);
+        mywebview.post(new Runnable() {
+            public void run() {
+                mywebview.loadUrl(url);
+            }
+        });
+
     }
 
     public MainActivity() {
@@ -155,7 +164,10 @@ public class MainActivity extends AppCompatActivity {
 
         Log.e("request", requestURL);
         WebContent wc = resources.get(requestURL);
-        if (wc != null) {
+
+
+
+        if (wc != null && !getConnected()) {
             return wc;
         }
 
@@ -188,6 +200,8 @@ public class MainActivity extends AppCompatActivity {
                     byte[] byteArray = buffer.toByteArray();
                     resources.put(requestURL, new WebContent(contentType, byteArray));
                     Log.d("store: ", requestURL);
+                    Log.d("NEW", requestURL );
+                    //MainActivity.instance.mywebview.clearCache(true);
 
                 } catch (Exception e) {
                     Log.e("error reading:", requestURL);
@@ -196,9 +210,22 @@ public class MainActivity extends AppCompatActivity {
                         urlConnection.disconnect();
                     }
                 }
+
+
             }
         }).start();
         return resources.get(requestURL);
+    }
+
+    boolean getConnected(){
+        ConnectivityManager cm =
+                (ConnectivityManager)getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+        return isConnected;
+
     }
 
     @Override
@@ -220,6 +247,8 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setDatabaseEnabled(true);
         //webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         //ServiceWorkerController.getInstance().getServiceWorkerWebSettings().setAllowFileAccess(true);
+        webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        webSettings.setAppCacheEnabled(false);
 
         Log.d("VERSION:", getSoftwareVersion() + " " + getAppLabel());
 
@@ -249,6 +278,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                //mywebview.clearCache(true);
                 String requestURL = request.getUrl().toString();
                 Log.d("request", requestURL);
 
@@ -285,7 +315,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        mywebview.clearCache(true);
+        //mywebview.clearCache(true);
+
         //String summary = "<html><body>You scored <b>192</b> points.</body></html>";
         //mywebview.loadData(summary, "text/html", null);
         String lghUrl = getResources().getString(R.string.url_vehicle);

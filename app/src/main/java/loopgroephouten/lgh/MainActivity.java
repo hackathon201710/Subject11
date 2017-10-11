@@ -22,6 +22,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+
 import java.io.ByteArrayOutputStream;
 import java.net.URL;
 import java.io.BufferedInputStream;
@@ -29,17 +31,33 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 
 final class JavaScriptInterface {
 
     public static Map<String, String> urls = new HashMap<String, String>();
+    public static Map<String, String> versionsURLs = new HashMap<String, String>();
+    public static Map<String, String> versions = new HashMap<String, String>();
+
+    public static Set<String> updated = new HashSet<String>();
 
     {
         urls.put("vehicle", "http://www.eddyspreeuwers.nl/ng4");
         urls.put("person", "http://hackathon20171011102444.azurewebsites.net/");
         urls.put("location", "http://www.eddyspreeuwers.nl/location.html");
+
+        versionsURLs.put("http://www.eddyspreeuwers.nl/ng4", "http://www.eddyspreeuwers.nl/ng4/version.json");
+        versionsURLs.put("http://hackathon20171011102444.azurewebsites.net/", "http://hackathon20171011102444.azurewebsites.net/version");
+        versionsURLs.put("http://www.eddyspreeuwers.nl/location.html", "http://www.eddyspreeuwers.nl/version.json");
+
+
 
     }
 
@@ -48,6 +66,7 @@ final class JavaScriptInterface {
         Log.e("hi ", name);
 
     }
+
     @android.webkit.JavascriptInterface
     void execute(String command, String param) {
         Log.e("command ", command);
@@ -74,9 +93,13 @@ class WebContent {
         this.content = content;
         this.contentType = contentType;
     }
+
 }
 
-public class MainActivity extends AppCompatActivity {
+
+
+
+public class MainActivity extends AppCompatActivity implements IAmReady {
 
     private TextView mTextMessage;
     private WebView mywebview;
@@ -85,9 +108,39 @@ public class MainActivity extends AppCompatActivity {
     private WebSettings webSettings;
     private Map<String, WebContent> resources = new HashMap<String, WebContent>();
 
+//    public String getVersion(String url) {
+//        Version mSearchResult = null;
+//
+//        OkHttpClient client = new OkHttpClient();
+//
+//        Request request = new Request.Builder()
+//                .url(url)
+//                .build();
+//
+//
+//        try {
+//            Response response = client.newCall(request).execute();
+//            Gson gson = new Gson();
+//            mSearchResult = gson.fromJson(response.body().string(), Version.class);
+//
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return mSearchResult.version;
+//    }
+
+
+    //invoked when pressing a menu button
     private boolean setUrl(int resId) {
 
         String navUrl = getResources().getString(resId);
+
+        String versionURL = JavaScriptInterface.versionsURLs.get(navUrl);
+
+
+        new UpdateTask(versionURL,this).execute();
+
 
         if (!mywebview.getOriginalUrl().equals(navUrl)) {
             mywebview.loadUrl(navUrl);
@@ -97,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    public void nav2Url(final String  url) {
+    public void nav2Url(final String url) {
         Log.d("nav2Url", url);
         mywebview.post(new Runnable() {
             public void run() {
@@ -162,13 +215,13 @@ public class MainActivity extends AppCompatActivity {
 
     WebContent getWebContent(final String requestURL) {
 
+        //final String requestURL = url.toString();
         Log.e("request", requestURL);
         WebContent wc = resources.get(requestURL);
 
 
-
         if (wc != null && !getConnected()) {
-            return wc;
+             return wc;
         }
 
         new Thread(new Runnable() {
@@ -200,7 +253,7 @@ public class MainActivity extends AppCompatActivity {
                     byte[] byteArray = buffer.toByteArray();
                     resources.put(requestURL, new WebContent(contentType, byteArray));
                     Log.d("store: ", requestURL);
-                    Log.d("NEW", requestURL );
+                    Log.d("NEW", requestURL);
                     //MainActivity.instance.mywebview.clearCache(true);
 
                 } catch (Exception e) {
@@ -217,9 +270,9 @@ public class MainActivity extends AppCompatActivity {
         return resources.get(requestURL);
     }
 
-    boolean getConnected(){
+    boolean getConnected() {
         ConnectivityManager cm =
-                (ConnectivityManager)getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+                (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
 
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         boolean isConnected = activeNetwork != null &&
@@ -282,10 +335,6 @@ public class MainActivity extends AppCompatActivity {
                 String requestURL = request.getUrl().toString();
                 Log.d("request", requestURL);
 
-                if (requestURL.contains("activiteiten")) {
-                    requestURL = "http://www.eddyspreeuwers.nl/ng4";
-                    Log.d("request", requestURL);
-                }
                 WebContent wc = getWebContent(requestURL);
                 Log.d("retrieve: ", requestURL);
                 if (wc != null) {
@@ -324,4 +373,15 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public void onNewVersion(String navUrl, String remoteVersion) {
+        String localVersion = JavaScriptInterface.versions.get(navUrl);
+
+        if (localVersion.equals(remoteVersion)) {
+            JavaScriptInterface.updated.remove(navUrl);
+        }   else {
+            JavaScriptInterface.updated.add(navUrl);
+            JavaScriptInterface.versions.put(navUrl, remoteVersion);
+        }
+    }
 }

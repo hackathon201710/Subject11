@@ -8,4 +8,10 @@
     <string name="url_person">http://hackathon20171011102444.azurewebsites.net/</string>
     <string name="url_location">http://www.eddyspreeuwers.nl/location.html</string>
 
+    <string name="menuUpdate">Update</string>
+
+    <string name="menuLater">Later...</string>
+    <string name="update_message_title">New version available.</string>
+    <string name="update_message_body">A new version of the website is available. Would you like to download it?</string>
+
 </resources>

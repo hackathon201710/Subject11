@@ -7,12 +7,12 @@ import android.os.Parcelable;
  * Created by eddyspreeuwers on 10/11/17.
  */
 
-public class Version implements Parcelable{
+public class VersionModel implements Parcelable{
 
     String name;
     String version;
 
-    public Version(Parcel in) {
+    public VersionModel(Parcel in) {
         name = in.readString();
         version = in.readString();
 
@@ -31,13 +31,13 @@ public class Version implements Parcelable{
     }
 
 
-    public static final Parcelable.Creator CREATOR = new Parcelable.Creator<Version>() {
-        public Version createFromParcel(Parcel pc) {
-            return new Version(pc);
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator<VersionModel>() {
+        public VersionModel createFromParcel(Parcel pc) {
+            return new VersionModel(pc);
         }
 
-        public Version[] newArray(int size) {
-            return new Version[size];
+        public VersionModel[] newArray(int size) {
+            return new VersionModel[size];
         }
     };
     }

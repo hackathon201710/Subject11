@@ -6,5 +6,5 @@ package loopgroephouten.lgh;
 
 public interface IAmReady {
 
-    void onNewVersion(String url,String version);
+    void onNewVersion(String url,VersionModel version);
 }

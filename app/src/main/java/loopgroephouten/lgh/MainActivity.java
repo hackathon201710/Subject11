@@ -1,6 +1,7 @@
 package loopgroephouten.lgh;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -9,6 +10,7 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
@@ -20,9 +22,8 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import com.google.gson.Gson;
 
 import java.io.ByteArrayOutputStream;
 import java.net.URL;
@@ -34,10 +35,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 
 final class JavaScriptInterface {
@@ -79,8 +76,6 @@ final class JavaScriptInterface {
         MainActivity.instance.nav2Url(url);
 
     }
-
-
 }
 
 
@@ -101,46 +96,34 @@ class WebContent {
 
 public class MainActivity extends AppCompatActivity implements IAmReady {
 
+    boolean downloadUpdate;
+
     private TextView mTextMessage;
     private WebView mywebview;
     public static MainActivity instance;
 
+    private LinearLayout linearLayout;
+
     private WebSettings webSettings;
     private Map<String, WebContent> resources = new HashMap<String, WebContent>();
 
-//    public String getVersion(String url) {
-//        Version mSearchResult = null;
-//
-//        OkHttpClient client = new OkHttpClient();
-//
-//        Request request = new Request.Builder()
-//                .url(url)
-//                .build();
-//
-//
-//        try {
-//            Response response = client.newCall(request).execute();
-//            Gson gson = new Gson();
-//            mSearchResult = gson.fromJson(response.body().string(), Version.class);
-//
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return mSearchResult.version;
-//    }
-
-
     //invoked when pressing a menu button
     private boolean setUrl(int resId) {
-
+        downloadUpdate = false;
         String navUrl = getResources().getString(resId);
 
+        return setUrl(navUrl);
+    }
+
+    private boolean setUrl(String navUrl) {
         String versionURL = JavaScriptInterface.versionsURLs.get(navUrl);
 
-
-        new UpdateTask(versionURL,this).execute();
-
+        if (JavaScriptInterface.updated.contains(navUrl)) {
+            downloadUpdate = true;
+            JavaScriptInterface.updated.remove(navUrl);
+        } else {
+            new UpdateTask(versionURL, this).execute();
+        }
 
         if (!mywebview.getOriginalUrl().equals(navUrl)) {
             mywebview.loadUrl(navUrl);
@@ -219,8 +202,7 @@ public class MainActivity extends AppCompatActivity implements IAmReady {
         Log.e("request", requestURL);
         WebContent wc = resources.get(requestURL);
 
-
-        if (wc != null && !getConnected()) {
+        if (!downloadUpdate && (wc != null && !getConnected())) {
              return wc;
         }
 
@@ -286,6 +268,8 @@ public class MainActivity extends AppCompatActivity implements IAmReady {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        linearLayout = (LinearLayout) findViewById(R.id.container);
+
         mTextMessage = (TextView) findViewById(R.id.message);
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
@@ -337,7 +321,7 @@ public class MainActivity extends AppCompatActivity implements IAmReady {
 
                 WebContent wc = getWebContent(requestURL);
                 Log.d("retrieve: ", requestURL);
-                if (wc != null) {
+                if (!downloadUpdate && wc != null) {
                     Log.d("retrieved: ", requestURL);
                     InputStream data = new ByteArrayInputStream(wc.content);
                     return new WebResourceResponse(wc.contentType, "UTF-8", data);
@@ -374,14 +358,47 @@ public class MainActivity extends AppCompatActivity implements IAmReady {
     }
 
     @Override
-    public void onNewVersion(String navUrl, String remoteVersion) {
-        String localVersion = JavaScriptInterface.versions.get(navUrl);
+    public void onNewVersion(String navVersionUrl, VersionModel remoteVersion) {
+        String localVersion = JavaScriptInterface.versions.get(navVersionUrl);
 
-        if (localVersion.equals(remoteVersion)) {
+        if (localVersion == null) {
+            JavaScriptInterface.versions.put(navVersionUrl, remoteVersion.version);
+            return;
+        }
+
+        String navUrl = JavaScriptInterface.urls.get(remoteVersion.name);
+
+        if (localVersion.equals(remoteVersion.version)) {
             JavaScriptInterface.updated.remove(navUrl);
         }   else {
             JavaScriptInterface.updated.add(navUrl);
-            JavaScriptInterface.versions.put(navUrl, remoteVersion);
+            JavaScriptInterface.versions.put(navVersionUrl, remoteVersion.version);
+
+            notifyUserOfUpdate(remoteVersion);
         }
+    }
+
+    private void notifyUserOfUpdate(final VersionModel versionModel) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+
+        builder.setTitle(R.string.update_message_title);
+        builder.setMessage(R.string.update_message_body);
+        builder.setPositiveButton(R.string.menuUpdate, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                String navUrl = JavaScriptInterface.urls.get(versionModel.name);
+                setUrl(navUrl);
+                Log.d("UPDATE URL", navUrl);
+            }
+        });
+
+        builder.setNegativeButton(R.string.menuLater, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+
+        dialog.show();
     }
 }

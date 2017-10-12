@@ -5,8 +5,6 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 
-import java.io.IOException;
-
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 
@@ -59,9 +57,9 @@ public class UpdateTask extends AsyncTask<Void, Void, String> {
         super.onPostExecute(response);
         try{
             Gson gson = new Gson();
-            Version version = gson.fromJson(response, Version.class);
-            Log.d("onPostExecute VERSION",version.version );
-            iAmReady.onNewVersion(url, version.version);
+            VersionModel versionModel = gson.fromJson(response, VersionModel.class);
+            Log.d("onPostExecute VERSION",versionModel.version );
+            iAmReady.onNewVersion(url, versionModel);
         } catch(Exception e){
             Log.e("ERROR", e.getMessage(), e);
         }

@@ -412,7 +412,6 @@ public class MainActivity extends AppCompatActivity implements IAmReady {
             JavaScriptInterface.updated.remove(navUrl);
         } else {
             JavaScriptInterface.updated.add(navUrl);
-            JavaScriptInterface.versions.put(navVersionUrl, remoteVersion.version);
 
             notifyUserOfUpdate(remoteVersion);
         }
@@ -426,6 +425,8 @@ public class MainActivity extends AppCompatActivity implements IAmReady {
         builder.setPositiveButton(R.string.menuUpdate, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 String navUrl = JavaScriptInterface.urls.get(versionModel.name);
+                String navVersionUrl = JavaScriptInterface.versionsURLs.get(navUrl);
+                JavaScriptInterface.versions.put(navVersionUrl, versionModel.version);
                 setUrl(navUrl);
                 Log.d("UPDATE URL", navUrl);
             }
@@ -433,7 +434,9 @@ public class MainActivity extends AppCompatActivity implements IAmReady {
 
         builder.setNegativeButton(R.string.menuLater, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
-
+                downloadUpdate = false;
+                String navUrl = JavaScriptInterface.urls.get(versionModel.name);
+                JavaScriptInterface.updated.remove(navUrl);
             }
         });
 

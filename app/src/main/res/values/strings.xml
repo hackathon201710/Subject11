@@ -4,7 +4,7 @@
     <string name="title_person">Person</string>
     <string name="title_location">Location</string>
 
-    <string name="url_vehicle">http://www.eddyspreeuwers.nl/ng4/index.html</string>
+    <string name="url_vehicle">http://www.eddyspreeuwers.nl/ng4</string>
     <string name="url_person">http://hackathon20171011102444.azurewebsites.net/</string>
     <string name="url_location">http://www.eddyspreeuwers.nl/location.html</string>
 

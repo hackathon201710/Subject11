@@ -1,15 +1,21 @@
 package loopgroephouten.lgh;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -22,8 +28,13 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.io.ByteArrayOutputStream;
 import java.net.URL;
@@ -55,7 +66,6 @@ final class JavaScriptInterface {
         versionsURLs.put("http://www.eddyspreeuwers.nl/location.html", "http://www.eddyspreeuwers.nl/version.json");
 
 
-
     }
 
     @android.webkit.JavascriptInterface
@@ -74,7 +84,11 @@ final class JavaScriptInterface {
         }
 
         MainActivity.instance.nav2Url(url);
+    }
 
+    @android.webkit.JavascriptInterface
+    String getLastKnownLocation() {
+        return MainActivity.instance.getLastKnownLocation();
     }
 }
 
@@ -92,8 +106,6 @@ class WebContent {
 }
 
 
-
-
 public class MainActivity extends AppCompatActivity implements IAmReady {
 
     boolean downloadUpdate;
@@ -103,9 +115,13 @@ public class MainActivity extends AppCompatActivity implements IAmReady {
     public static MainActivity instance;
 
     private LinearLayout linearLayout;
+    private FrameLayout frameLayout;
 
     private WebSettings webSettings;
     private Map<String, WebContent> resources = new HashMap<String, WebContent>();
+
+    private static final int LOCATION_REQUEST_CODE = 101;
+    private LocationManager mLocationManager;
 
     //invoked when pressing a menu button
     private boolean setUrl(int resId) {
@@ -125,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements IAmReady {
             new UpdateTask(versionURL, this).execute();
         }
 
-        if (!mywebview.getOriginalUrl().equals(navUrl)) {
+        if (!mywebview.getOriginalUrl().equals(navUrl) || downloadUpdate) {
             mywebview.loadUrl(navUrl);
             Log.d("SET URL", navUrl);
             return true;
@@ -203,7 +219,7 @@ public class MainActivity extends AppCompatActivity implements IAmReady {
         WebContent wc = resources.get(requestURL);
 
         if (!downloadUpdate && (wc != null && !getConnected())) {
-             return wc;
+            return wc;
         }
 
         new Thread(new Runnable() {
@@ -269,6 +285,7 @@ public class MainActivity extends AppCompatActivity implements IAmReady {
         setContentView(R.layout.activity_main);
 
         linearLayout = (LinearLayout) findViewById(R.id.container);
+        frameLayout = (FrameLayout) findViewById(R.id.content);
 
         mTextMessage = (TextView) findViewById(R.id.message);
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
@@ -289,6 +306,16 @@ public class MainActivity extends AppCompatActivity implements IAmReady {
 
         Log.d("VERSION:", getSoftwareVersion() + " " + getAppLabel());
 
+        mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION, android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    LOCATION_REQUEST_CODE);
+        }
         mywebview.addJavascriptInterface(new JavaScriptInterface(), "webview");
 
         mywebview.setWebChromeClient(new WebChromeClient() {
@@ -326,14 +353,15 @@ public class MainActivity extends AppCompatActivity implements IAmReady {
                     InputStream data = new ByteArrayInputStream(wc.content);
                     return new WebResourceResponse(wc.contentType, "UTF-8", data);
                 } else {
-                    if (request.getUrl().toString().contains("activiteiten")) {
-                        Log.e("activiteiten", request.getUrl().toString());
+                    if (request.getUrl().toString().contains("location")) {
+                        Log.e("Location", request.getUrl().toString());
+
                         String offLinePage =
                                 "<html>" +
                                         "<head></head>" +
                                         "<body>" +
                                         "<h1>Offline page! loading ....</h1>" +
-                                        "<a href=\"javascript:webview.sayHi('eddy')\">Ok</a>" +
+                                        "<a href=\"javascript:alert(webview.getLastKnownLocation())\">Ok</a>" +
                                         "</body>" +
                                         "</html>";
 
@@ -344,6 +372,18 @@ public class MainActivity extends AppCompatActivity implements IAmReady {
 
                     Log.e("requestvloading... ", request.getUrl().toString());
                     return super.shouldInterceptRequest(view, request);
+                }
+            }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                Log.d("onPageFinished", url);
+
+                if (downloadUpdate) {
+                    Snackbar snackbar = Snackbar
+                            .make(frameLayout, "Website has been updated", Snackbar.LENGTH_LONG);
+
+                    snackbar.show();
                 }
             }
         });
@@ -370,7 +410,7 @@ public class MainActivity extends AppCompatActivity implements IAmReady {
 
         if (localVersion.equals(remoteVersion.version)) {
             JavaScriptInterface.updated.remove(navUrl);
-        }   else {
+        } else {
             JavaScriptInterface.updated.add(navUrl);
             JavaScriptInterface.versions.put(navVersionUrl, remoteVersion.version);
 
@@ -400,5 +440,23 @@ public class MainActivity extends AppCompatActivity implements IAmReady {
         AlertDialog dialog = builder.create();
 
         dialog.show();
+    }
+
+    public String getLastKnownLocation() {
+
+        //if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+        //        && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            Location location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+            if (location != null) {
+                Log.d("LASTKNOWNLOCATION", location.getLatitude() + " " + location.getLongitude());
+                return location.getLatitude() + "," + location.getLongitude();
+            }
+
+            return "";
+//        }
+
+        //return "";
     }
 }

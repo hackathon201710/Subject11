@@ -41,7 +41,10 @@ public class UpdateTask extends AsyncTask<Void, Void, String> {
 
             Response response = okHttpClient.newCall(request).execute();
 
-            return response.body().string();
+            if (response.code() == 200)
+                return response.body().string();
+            else
+                return null;
 
         } catch (Exception e) {
             Log.e("ERROR", e.getMessage(), e);
@@ -50,11 +53,13 @@ public class UpdateTask extends AsyncTask<Void, Void, String> {
         return null;
     }
 
-
-
     @Override
     protected void onPostExecute(final String response) {
         super.onPostExecute(response);
+
+        if (response == null)
+            return;
+
         try{
             Gson gson = new Gson();
             VersionModel versionModel = gson.fromJson(response, VersionModel.class);
@@ -63,10 +68,6 @@ public class UpdateTask extends AsyncTask<Void, Void, String> {
         } catch(Exception e){
             Log.e("ERROR", e.getMessage(), e);
         }
-
-
-
-
     }
 
     @Override
